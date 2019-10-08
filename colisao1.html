@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+    <style>
+      .container {
+        position: relative;
+        width: 800px;
+        height: 600px;
+        margin: 100px;
+      }
+      .rectangle {
+        position: absolute;
+        left: 50%;
+        /* top: 20px; */
+
+        background: #4caf50;
+        width: 34px;
+        height: 12px;
+        /* border-radius: 5px; */
+        transition: 0.3s all ease;
+        color: #fff;
+        text-align: center;
+        line-height: 100px;
+        font-size: 17px;
+        margin: 5px;
+        /* z-index: 1; */
+        /* top: 400px; */
+        border: #000 solid 0.5px;
+      }
+      .collide {
+        border-color: #ef5350;
+        transform: translate(0, -110%);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="rectangle" data-id="1" id="1" style="left: 65%;"></div>
+      <div class="rectangle" data-id="2" id="2" style="left: 27%;"></div>
+      <div class="rectangle" data-id="3" id="3" style="left: 65%;"></div>
+      <div class="rectangle" data-id="4" id="4" style="left: 65%;"></div>
+      <div class="rectangle" data-id="5" id="5" style="left: 65%;"></div>
+      <div class="rectangle" data-id="6" id="6" style="left: 22%;"></div>
+      <div class="rectangle" data-id="7" id="7" style="left: 120%;"></div>
+      <div class="rectangle" data-id="8" id="8" style="left: 60%;"></div>
+      <div class="rectangle" data-id="9" id="9" style="left: 65%;"></div>
+      <div class="rectangle" data-id="10" id="10" style="left: 38%;"></div>
+      <div class="rectangle" data-id="11" id="11" style="left: 121%;"></div>
+      <div class="rectangle" data-id="12" id="12" style="left: 23%;"></div>
+      <div class="rectangle" data-id="13" id="13" style="left: 23%;"></div>
+    </div>
+
+    <script>
+      window.onload = function() {
+        isCollapsed();
+      };
+
+      function isCollapsed() {
+        let objetosColididos = selectorClass();
+        let agrupado = agruparByIDCollision(objetosColididos);
+
+        agrupado.forEach(elemento => {
+          let multiplicador;
+
+          if (elemento.grupID <= 2) {
+            multiplicador = 15;
+          } else {
+            multiplicador = 15 * elemento.grupID;
+          }
+
+          elemento["grupTopId"] = multiplicador;
+          styleCss(elemento, "quantidade");
+          console.log(elemento);
+        });
+
+        verificarNovoElemento();
+      }
+
+      function selectorClass() {
+        let classes = document.querySelectorAll(".rectangle");
+        let objetos = jsonClassSelector(classes);
+        let objetosColididos = checkedCollision(objetos);
+        return objetosColididos;
+      }
+
+      function jsonClassSelector(dataElemento) {
+        let arrayData = [];
+        dataElemento.forEach(elemento => {
+          let jsonData = {
+            id: elemento.dataset.id,
+            left: elemento.getBoundingClientRect().left,
+            right: elemento.getBoundingClientRect().right,
+            top: elemento.getBoundingClientRect().top,
+            bottom: elemento.getBoundingClientRect().bottom,
+            style: elemento.style.top
+          };
+          arrayData.push(jsonData);
+        });
+
+        return arrayData;
+      }
+
+      function checkedCollision(objetos) {
+        let arrayObjeto = [];
+        for (let k = 0; k < objetos.length; k++) {
+          for (let j = k + 1; j < objetos.length; j++) {
+            if (
+              objetos[k].left < objetos[j].right &&
+              objetos[k].right > objetos[j].left &&
+              objetos[k].top < objetos[j].bottom &&
+              objetos[k].bottom > objetos[j].top
+            ) {
+              arrayObjeto.push(objetos[j]);
+            }
+          }
+        }
+        return arrayObjeto;
+      }
+
+      function styleCss(objeto, tipo) {
+        let byID = document.getElementById(objeto.id.toString());
+        byID.style.background = "#ef5350";
+
+        if (tipo === "quantidade") {
+          byID.style.top = -objeto.grupTopId + "px";
+        }
+
+        if (tipo === "style") {
+          byID.style.top = -objeto.styleTop + "px";
+        }
+      }
+
+      function verificarNovoElemento() {
+        let objetos = selectorClass();
+
+        objetos.forEach(elemento => {
+          let number = filterNumber(elemento.style);
+          elemento["styleTop"] = number + number;
+          styleCss(elemento, "style");
+        });
+      }
+
+      function filterNumber(string) {
+        let numsStr = string.replace(/[^0-9]/g, "");
+        return parseInt(numsStr);
+      }
+
+      function agruparByIDCollision(arrayJson) {
+        return [
+          ...arrayJson
+            .reduce((r, data) => {
+              r.has(data.id) ||
+                r.set(
+                  data.id,
+                  Object.assign({
+                    id: data.id,
+                    top: data.top,
+                    grupID: 0
+                  })
+                );
+
+              const item = r.get(data.id);
+              item.grupID++;
+              return r;
+            }, new Map())
+            .values()
+        ];
+      }
+    </script>
+  </body>
+</html>
